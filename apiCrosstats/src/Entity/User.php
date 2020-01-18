@@ -6,12 +6,19 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @ApiResource()
+ * @UniqueEntity("email")
  */
 class User implements UserInterface
 {
+    const ROLE_ADMIN = 'ROLE_ADMIN';
+    const ROLE_MANAGER = 'ROLE_MANAGER';
+    const ROLE_USER = 'ROLE_USER';
+    const DEFAULT_ROLE = 'ROLE_USER';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -20,7 +27,10 @@ class User implements UserInterface
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
+     * @Assert\Email(
+     *     message = "The email '{{ value }}' is not a valid email."
+     * )
      */
     private $email;
 
@@ -38,6 +48,11 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $apiToken;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $password;
 
     public function getId(): ?int
     {
@@ -111,7 +126,7 @@ class User implements UserInterface
      */
     public function getPassword()
     {
-        return null;
+        return $this->password;
     }
 
     /**
@@ -133,7 +148,7 @@ class User implements UserInterface
      */
     public function getUsername()
     {
-        return $this->email;
+        return $this->getEmail();
     }
 
     /**
@@ -155,6 +170,13 @@ class User implements UserInterface
     public function setApiToken(?string $apiToken): self
     {
         $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
 
         return $this;
     }
