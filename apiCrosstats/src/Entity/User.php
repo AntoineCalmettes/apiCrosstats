@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -17,12 +18,14 @@ class User implements UserInterface
 {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_MANAGER = 'ROLE_MANAGER';
+    const ROLE_COACH = 'ROLE_COACH';
     const ROLE_USER = 'ROLE_USER';
     const DEFAULT_ROLE = 'ROLE_USER';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups("post:read")
      */
     private $id;
 
@@ -31,16 +34,19 @@ class User implements UserInterface
      * @Assert\Email(
      *     message = "The email '{{ value }}' is not a valid email."
      * )
+     * @Groups("post:read")
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups("post:read")
      */
     private $fullname;
 
     /**
      * @ORM\Column(type="datetime")
+     * @Groups("post:read")
      */
     private $created_at;
 
@@ -53,6 +59,21 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255)
      */
     private $password;
+
+     /**
+     * @ORM\Column(type="simple_array", length=255,nullable=true)
+     * @Groups("post:read")
+     */
+    private $roles;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $ModifiedAt;
+
+    public function __construct(){
+        $this->roles=self::DEFAULT_ROLE;
+    }
 
     public function getId(): ?int
     {
@@ -111,9 +132,14 @@ class User implements UserInterface
      *
      * @return (Role|string)[] The user roles
      */
-    public function getRoles()
+    public function getRoles() :array
     {
-        return array('ROLE_USER');
+        return $this->roles;
+    }
+//Affecte les roles des utilisateurs
+    public function setRoles(array $roles){ 
+        $this->roles=$roles;
+        return $this;
     }
 
     /**
@@ -177,6 +203,18 @@ class User implements UserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getModifiedAt(): ?\DateTimeInterface
+    {
+        return $this->ModifiedAt;
+    }
+
+    public function setModifiedAt(?\DateTimeInterface $ModifiedAt): self
+    {
+        $this->ModifiedAt = $ModifiedAt;
 
         return $this;
     }
